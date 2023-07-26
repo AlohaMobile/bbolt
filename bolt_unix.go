@@ -10,40 +10,12 @@ import (
 	"unsafe"
 
 	"golang.org/x/sys/unix"
-
-	"go.etcd.io/bbolt/errors"
 )
 
 // flock acquires an advisory lock on a file descriptor.
 func flock(db *DB, exclusive bool, timeout time.Duration) error {
-	var t time.Time
-	if timeout != 0 {
-		t = time.Now()
-	}
-	fd := db.file.Fd()
-	flag := syscall.LOCK_NB
-	if exclusive {
-		flag |= syscall.LOCK_EX
-	} else {
-		flag |= syscall.LOCK_SH
-	}
-	for {
-		// Attempt to obtain an exclusive lock.
-		err := syscall.Flock(int(fd), flag)
-		if err == nil {
-			return nil
-		} else if err != syscall.EWOULDBLOCK {
-			return err
-		}
-
-		// If we timed out then return an error.
-		if timeout != 0 && time.Since(t) > timeout-flockRetryTimeout {
-			return errors.ErrTimeout
-		}
-
-		// Wait for a bit and try again.
-		time.Sleep(flockRetryTimeout)
-	}
+	// Locking database file is disabled due to iOS limitations.
+	return nil
 }
 
 // funlock releases an advisory lock on a file descriptor.
